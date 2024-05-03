@@ -1,4 +1,4 @@
-package ru.shotin.tasks;
+package ru.shotin.solutions;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -24,8 +24,7 @@ public class Task4DistributedCalculator {
     static class CalcSub implements AutoCloseable {  // TODO: fix Calculator Subscriber Logic
         static final ScheduledExecutorService subThreadPool = Executors.newScheduledThreadPool(5);
         private CountDownLatch messagesToConsume;
-        static final Map<String, Double> subscriberVariables = new ConcurrentHashMap<>();
-
+        static final Map<String, SortedSet<CalcAction>> subscriberVariables = new ConcurrentHashMap<>();
         void start(CountDownLatch messagesToConsume) { // TODO: fix if necessary
             this.messagesToConsume = messagesToConsume;
             subThreadPool.scheduleAtFixedRate(() -> consumeActionOnValue(MESSAGE_BROKER.poll()), 0, 10, TimeUnit.MILLISECONDS);
@@ -38,7 +37,13 @@ public class Task4DistributedCalculator {
                 if (calcAction == null) return;
                 System.out.println("received: " + calcAction);
                 messagesToConsume.countDown();
-                subscriberVariables.compute(calcAction.varName, (varName, value) -> calcAction.applyTo(value));
+                subscriberVariables.compute(calcAction.varName, (varName, actions) -> {
+                    if (actions == null) {
+                        actions = new ConcurrentSkipListSet<>(Comparator.comparingInt(action -> action.step));
+                    }
+                    actions.add(calcAction);
+                    return actions;
+                });
             } catch (RuntimeException e) {
                 e.printStackTrace();
             }
@@ -52,7 +57,14 @@ public class Task4DistributedCalculator {
 
         void printStateForStep(int step, int stepCount) { // TODO: fix if necessary
             System.out.printf("%n=== subscriber variables for step=%d/%d ===%n", step, stepCount);
-            subscriberVariables.forEach((varName, value) -> System.out.printf("\t%s = %.3f%n", varName, value));
+            subscriberVariables.forEach((String varName, SortedSet<CalcAction> actions) -> {
+                Double value = null;
+                for (CalcAction calcAction : actions) {
+                    if (calcAction.step > step) break;
+                    value = calcAction.applyTo(value);
+                }
+                System.out.printf("\t%s = %.3f%n", varName, value);
+            });
         }
 
         @Override
