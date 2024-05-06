@@ -1,8 +1,9 @@
 package ru.shotin.tasks;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class Task4DistributedCalculator {
     public static void main(String[] args) throws InterruptedException {
@@ -19,7 +20,7 @@ public class Task4DistributedCalculator {
         }
     }
 
-    static final BlockingQueue<CalcAction> MESSAGE_BROKER = new ArrayBlockingQueue<>(5);
+    static final BlockingQueue<CalcAction> MESSAGE_BROKER = new ArrayBlockingQueue<>(3);
 
     static class CalcSub implements AutoCloseable {  // TODO: fix Calculator Subscriber Logic
         static final ScheduledExecutorService subThreadPool = Executors.newScheduledThreadPool(5);

@@ -1,21 +1,35 @@
-package ru.shotin.tasks;
+package ru.shotin.solutions;
 
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ru.shotin.tasks.Task1OrdersTopProducts.ProductNames.*;
-
 public class Task1OrdersTopProducts {
 
     public static void printTop2ProductsOfMonth(List<CommerceOrder> commerceOrders, Month month) {
         System.out.println("=== Top 2 Product of " + month + " ===");
+        Map<String, Integer> groupedByProduct = new HashMap<>();
+        for (CommerceOrder commerceOrder : commerceOrders) {
+            if (commerceOrder.orderDate.getMonth().equals(month)) {
+                for (CommerceItem commerceItem : commerceOrder.commerceItems) {
+                    groupedByProduct.merge(commerceItem.productName, commerceItem.count, Integer::sum);
+                }
+            }
+        }
+        SortedSet<Map.Entry<String, Integer>> sortedGroups = new TreeSet<>((e1, e2) -> e2.getValue().compareTo(e1.getValue()));
+        sortedGroups.addAll(groupedByProduct.entrySet());
+        int limit = 0;
+        for(Map.Entry<String, Integer> sortedGroup : sortedGroups) {
+            if(limit++ > 2) break;
+            System.out.println(sortedGroup);
+        }
         // TODO: print ${productName}=${sum(count)}
     }
 
     public static void main(String[] args) {
         final String apples = "apples", bananas = "bananas", pears = "pears";
+
         List<CommerceOrder> commerceOrders = new ArrayList<>();
         commerceOrders.add(new CommerceOrder(LocalDate.parse("2024-03-12"), Arrays.asList(
                 new CommerceItem(apples, 3), new CommerceItem(bananas, 1)))
