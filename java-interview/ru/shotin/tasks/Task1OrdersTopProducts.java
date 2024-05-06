@@ -5,8 +5,6 @@ import java.time.Month;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static ru.shotin.tasks.Task1OrdersTopProducts.ProductNames.*;
-
 public class Task1OrdersTopProducts {
 
     public static void printTop2ProductsOfMonth(List<CommerceOrder> commerceOrders, Month month) {
